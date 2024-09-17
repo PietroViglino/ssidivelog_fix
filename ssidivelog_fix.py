@@ -5,7 +5,7 @@ import json
 import os
 
 LOGGING_LEVEL = logging.INFO
-NC_FILES_PATH = ''
+NC_FILES_PATH = 'data'
 
 assert os.path.exists(NC_FILES_PATH), f'Invalid file path {NC_FILES_PATH}'
     
@@ -43,32 +43,21 @@ def get_plat_name(mid):
 
 
 def fix_nc(platformcode, name):
-    nc_files = [f for f in os.listdir(NC_FILES_PATH) if f.endswith('.nc')]
-
-    nc_filename = platformcode + '.nc'
-    logging.debug(f'Fixing {nc_filename}')
-
-    if nc_filename in nc_files: 
-        try:
-            nc_file = nc.Dataset(os.path.join(NC_FILES_PATH, nc_filename), 'r+')
-            if 'TEMP' in nc_file.variables:
-                nc_file['TEMP'].sensor = name
-            else:
-                logging.error(f"'TEMP' variable not found in {nc_filename}.")
-        finally:
-            nc_file.close()
-            logging.info(f'Fixed {nc_filename}')
+    if os.path.exists(os.path.join(NC_FILES_PATH, platformcode)):
+        nc_files = [f for f in os.listdir(os.path.join(NC_FILES_PATH, platformcode)) if f.endswith('.nc')]
+        for nc_file in nc_files: 
+            try:
+                logging.debug(f'Fixing {nc_file}')
+                ncf = nc.Dataset(os.path.join(NC_FILES_PATH, platformcode, nc_file), 'r+')
+                if 'TEMP' in ncf.variables:
+                    ncf['TEMP'].sensor = name
+                else:
+                    logging.error(f"'TEMP' variable not found in {nc_file}.")
+            finally:
+                ncf.close()
+                logging.info(f'Fixed {nc_file}')
     else:
-        logging.warning(f'{nc_filename} not found')
-
-
-def download_nc(platformcode):
-    mmyyyy = ''.join(platformcode.split('_')[-2:])
-    url = f'https://er3webapps.emodnet-physics.eu/erddap/files/PR_TEMP_SSIDIVELOG/{platformcode}/{platformcode}_PR_TEMP_{mmyyyy}.nc'
-    resp = requests.get(url)
-    resp.raise_for_status()
-    with open(os.path.join(NC_FILES_PATH, platformcode +'.nc'), 'wb') as f:
-        f.write(resp.content)
+        logging.debug(f'Couldn\'t find folder {NC_FILES_PATH}/{platformcode}')
 
 
 def main():
