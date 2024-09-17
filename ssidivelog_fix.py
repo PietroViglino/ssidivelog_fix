@@ -5,7 +5,7 @@ import json
 import os
 
 LOGGING_LEVEL = logging.INFO
-NC_FILES_PATH = 'C:/Users/pietro.viglino/Desktop/Progetti/ssidivelog-fix/data'
+NC_FILES_PATH = ''
 
 assert os.path.exists(NC_FILES_PATH), f'Invalid file path {NC_FILES_PATH}'
     
@@ -79,6 +79,7 @@ def main():
             fix_nc(plat_code, sensor)
         except Exception as e:
             logging.error(str(e))
+    logging.info('Done')
 
 
 if __name__ == '__main__':
